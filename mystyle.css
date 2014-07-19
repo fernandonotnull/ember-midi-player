@@ -1,0 +1,9 @@
+.channel{
+	border:solid 1px red;
+	padding:5px 15px !important;
+	margin-top:5px;
+}
+
+.channel>button{
+	float:right;
+}

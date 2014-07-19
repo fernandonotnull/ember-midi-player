@@ -1,0 +1,22 @@
+{
+  "name": "ember-midi-player",
+  "version": "0.0.0",
+  "homepage": "https://github.com/fernandonotnull/ember-midi-player",
+  "authors": [
+    "fernandonotnull <fernando.notnull@gmail.com>"
+  ],
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "midi": "*",
+    "ember": "*"
+  }
+}
