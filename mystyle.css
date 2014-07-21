@@ -7,3 +7,11 @@
 .channel>button{
 	float:right;
 }
+
+[data-channelState='mute']{
+	background-color: red;
+}
+
+[data-channelState='active']{
+	background-color: #9EE09A;
+}

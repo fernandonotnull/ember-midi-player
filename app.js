@@ -11,20 +11,20 @@ App.InputFile = Ember.TextField.extend({
 				this.format = this.format || 'Text';
 				switch ( this.format ){
 					case 'ArrayBuffer':
-						reader.readAsArrayBuffer( archivo );
-						break;
+					reader.readAsArrayBuffer( archivo );
+					break;
 					case 'BinaryString':
-						reader.readAsBinaryString( archivo );
-						break;
+					reader.readAsBinaryString( archivo );
+					break;
 					case 'DataURL':
-						reader.readAsDataURL( archivo );
-						break;
+					reader.readAsDataURL( archivo );
+					break;
 					case 'Text':
 					default:
-						reader.readAsText( archivo );
+					reader.readAsText( archivo );
 						//this.format='Text';
 						break;
-				}
+					}
 
 				//eval('reader.readAs'+this.format+'(input.files[0])');
 				
@@ -85,7 +85,7 @@ App.PlayerControlsComponent = Ember.Component.extend({
 		pressPlay: function (){
 
 			var _isPlaying=this.get('isPlaying'),
-				_isPaused=this.get('isPaused');
+			_isPaused=this.get('isPaused');
 
 			if ( !_isPlaying || _isPaused ){
 
@@ -104,7 +104,7 @@ App.PlayerControlsComponent = Ember.Component.extend({
 		pressPause: function (){
 
 			var _isPlaying=this.get('isPlaying'),
-				_isPaused=this.get('isPaused');
+			_isPaused=this.get('isPaused');
 
 			if ( _isPlaying && !_isPaused ){
 
@@ -127,12 +127,10 @@ App.PlayerControlsComponent = Ember.Component.extend({
 	}
 })
 
-//Ember.Handlebars.helper('player-controls', App.PlayerControls);
-
-
 App.MidiPlayerComponent = Ember.Component.extend({
 	url: null,
 	checkType: null,
+	midiPlayerChannels: [],
 	init: function () {
 		this._super();
 		this.animateCallback = (function (that) {
@@ -181,33 +179,57 @@ App.MidiPlayerComponent = Ember.Component.extend({
 
 			MIDI.Player.pause();
 
-		},
-		putChannelOn: function (midiChannel) {	
-			alert('putChannelOn '+midiChannel);
-			MIDI.channels[midiChannel].mute=false;
-		},
-		putChannelOff: function (midiChannel) {
-			alert('putChannelOff '+midiChannel);
-			MIDI.channels[midiChannel].mute=true;
 		}
 	}
 });
 
 App.PlayMidiChannelsComponent = Ember.Component.extend({
-	midiChannels: [ {id: 0},{id: 1},{id: 2},{id: 3},
-				{id: 4},{id: 5},{id: 6},{id: 7},
-				{id: 8},{id: 9},{id: 10},{id: 11},
-				{id: 12},{id: 13},{id: 14},{id: 15}
-			  ],
+	midiChannels: function () {
+			return Ember.ArrayController.create({})
+		}(),
+	init: function () {
+	 	this._super();
+	 	var arrayChannels=[];
+	 	for (var channel in MIDI.channels){			
+
+			arrayChannels.push( Ember.Object.create({
+									'idChannel': channel,
+									'state': (MIDI.channels[channel].mute)?'mute':'active'
+								})
+			);
+		}
+		this.midiChannels.set('content',arrayChannels);
+ 	},
+	// consoleListener: function () {
+	// 	console.log(this.dNote+' - '+this.dChannel);
+	// }.observes('dNote','dChannel'),
+	// consoleChannels: function() {
+	// 	console.log(this.midiChannels);
+	// }.observes('midiChannels.@each.state'),
 	actions:{
 		channelOn: function (midiChannel) {
+			alert('Has pulsado ACTIVAR en el canal '+midiChannel);
+			MIDI.channels[midiChannel].mute=false;
+			this.midiChannels.content[midiChannel].state='active';
+			//this.midiChannels.set('content',this.midiChannels.content);
 
-			this.sendAction('clickOnChannel',midiChannel);
+			console.log('Canal '+midiChannel+' del objeto MIDI ');
+			console.log(MIDI.channels[midiChannel]);
+			console.log('content de canal '+midiChannel+' de this.midiChannels');
+			console.log(this.midiChannels.content[midiChannel]);
+			debugger;
 		},
 		channelOff: function (midiChannel) {
+			alert('Has pulsado DESACTIVAR en el canal '+midiChannel);
+			MIDI.channels[midiChannel].mute=true;
+			this.midiChannels.content[midiChannel].state='mute';
+			//this.midiChannels.set('content',this.midiChannels.content);
 
-			this.sendAction('clickOffChannel',midiChannel);
-
+			console.log('Canal '+midiChannel+' del objeto MIDI ');
+			console.log(MIDI.channels[midiChannel]);
+			console.log('content de canal '+midiChannel+' de this.midiChannels');
+			console.log(this.midiChannels.content[midiChannel]);
+			debugger;
 		}
 	}
 });
@@ -216,7 +238,7 @@ App.ProgressBarComponent = Ember.Component.extend({
 	color: '#FF0000',
 	nowPct: function () {
 		var max = this.get('max'),
-		 	now = this.get('now');
+		now = this.get('now');
 		if (!max) return '0%';
 		var pct = 100.0 * (now || 0) / max;
 		return pct.toFixed(2) + '%';
@@ -227,11 +249,11 @@ App.ProgressBarComponent = Ember.Component.extend({
 	actions: {
 		cambiaColor: function (event) {
 			var newColor="#", 
-				valorHexa= ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];			for (var i=0;i<6;i++){
-			for (var i=0;i<6;i++){
-				newColor+=valorHexa[Math.floor(Math.random() * 16)];
-			}
-			this.set('color',newColor);
+			valorHexa= ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];			for (var i=0;i<6;i++){
+				for (var i=0;i<6;i++){
+					newColor+=valorHexa[Math.floor(Math.random() * 16)];
+				}
+				this.set('color',newColor);
 			}
 		}
 	}

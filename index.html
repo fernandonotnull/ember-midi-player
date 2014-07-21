@@ -3,7 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<!--<link rel="stylesheet" href="bootstrap.min.css"> -->
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<link rel="stylesheet" href="mystyle.css">
 </head>
 <body>
@@ -28,8 +29,7 @@
 		{{#if loaded }}
 		
 			{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' }}
-			{{ play-midi-channels clickOnChannel='putChannelOn' clickOffChannel='putChannelOff'
-				dChannel=dataChannel dNote=dataNote }}
+			{{ play-midi-channels dChannel=dataChannel dNote=dataNote }}
 
 		{{/if }}
 	</script>
@@ -47,18 +47,20 @@
 		<div class="well">
 			<h3> Midi Channels </h3>
 			<div class="row">
-			 	{{#each midiChannels}}
+			 	{{#each midiChannels }}
+
 		    		<div class="col-md-3">
 		    			<div class="">
-			    			<div class="col-md-12 channel">
-				    			Canal {{id}} 
-				    			<button class="btn btn btn-danger btnMuteChannel" {{ bind-attr data-channel=id }} {{ action 'channelOff' id }} > <span class="glyphicon glyphicon-volume-off">
+			    			<div class="col-md-12 channel" {{ bind-attr data-channelState=state }}>
+				    			Canal {{ idChannel }} {{ state }} 
+				    			<button class="btn btn btn-danger btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOff' idChannel }} > <span class="glyphicon glyphicon-volume-off">
 				    			</button> 
-				    			<button class="btn btn btn-primary btnMuteChannel" {{ bind-attr data-channel=id }} {{ action 'channelOn' id }} > <span class="glyphicon glyphicon-volume-up"> 
+				    			<button class="btn btn btn-primary btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOn' idChannel }} > <span class="glyphicon glyphicon-volume-up"> 
 				    			</button>
 			    			</div>
 		    			</div>
 		    		</div>
+
 	  			{{/each }}
 			</div>
 			<div>Canal {{ dChannel }} </div>
