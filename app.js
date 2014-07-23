@@ -142,10 +142,10 @@ App.MidiPlayerComponent = Ember.Component.extend({
 		})(this);
 		this.listenerCallback = (function (that){
 			return function (event) {
-				that.set('dataChannel',event.channel);
-				that.set('dataNote',event.note);
-				that.set('listenerNow',event.now);
-				that.set('listenerEnd',event.end);		
+				that.set('dataListenerChannel',event.channel);
+				that.set('dataListenerNote',event.note);
+				that.set('dataListenerVelocity',event.velocity);
+				
 			}
 		})(this);
 	},
@@ -185,51 +185,38 @@ App.MidiPlayerComponent = Ember.Component.extend({
 
 App.PlayMidiChannelsComponent = Ember.Component.extend({
 	midiChannels: function () {
-			return Ember.ArrayController.create({})
-		}(),
+		return Ember.ArrayController.create({})
+	}(),
 	init: function () {
-	 	this._super();
-	 	var arrayChannels=[];
-	 	for (var channel in MIDI.channels){			
+		this._super();
+		var arrayChannels=[];
+		for (var channel in MIDI.channels){			
 
 			arrayChannels.push( Ember.Object.create({
-									'idChannel': channel,
-									'state': (MIDI.channels[channel].mute)?'mute':'active'
-								})
+				'idChannel': channel,
+				'state': (MIDI.channels[channel].mute)?'mute':'active',
+				'note': null
+			})
 			);
 		}
 		this.midiChannels.set('content',arrayChannels);
- 	},
-	// consoleListener: function () {
-	// 	console.log(this.dNote+' - '+this.dChannel);
-	// }.observes('dNote','dChannel'),
-	// consoleChannels: function() {
-	// 	console.log(this.midiChannels);
-	// }.observes('midiChannels.@each.state'),
+	},
+	writeChannelNote: function () {
+		if (this.midiChannels.content[this.dLChannel].state === 'active'){
+			Ember.set(this.midiChannels.content[this.dLChannel],'note',this.dLNote);
+		}
+		console.log(this.dLChannel+' '+this.dLNote+' '+this.dLVelocity);
+		//console.log(this.dChannel+this.dNote);
+	}.observes('dLChannel','dLNote'),
 	actions:{
 		channelOn: function (midiChannel) {
-			alert('Has pulsado ACTIVAR en el canal '+midiChannel);
 			MIDI.channels[midiChannel].mute=false;
-			this.midiChannels.content[midiChannel].state='active';
-			//this.midiChannels.set('content',this.midiChannels.content);
-
-			console.log('Canal '+midiChannel+' del objeto MIDI ');
-			console.log(MIDI.channels[midiChannel]);
-			console.log('content de canal '+midiChannel+' de this.midiChannels');
-			console.log(this.midiChannels.content[midiChannel]);
-			debugger;
+			
+			Ember.set(this.midiChannels.content[midiChannel],'state','active');
 		},
 		channelOff: function (midiChannel) {
-			alert('Has pulsado DESACTIVAR en el canal '+midiChannel);
 			MIDI.channels[midiChannel].mute=true;
-			this.midiChannels.content[midiChannel].state='mute';
-			//this.midiChannels.set('content',this.midiChannels.content);
-
-			console.log('Canal '+midiChannel+' del objeto MIDI ');
-			console.log(MIDI.channels[midiChannel]);
-			console.log('content de canal '+midiChannel+' de this.midiChannels');
-			console.log(this.midiChannels.content[midiChannel]);
-			debugger;
+			Ember.set(this.midiChannels.content[midiChannel],'state','mute');
 		}
 	}
 });

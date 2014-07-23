@@ -29,7 +29,7 @@
 		{{#if loaded }}
 		
 			{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' }}
-			{{ play-midi-channels dChannel=dataChannel dNote=dataNote }}
+			{{ play-midi-channels dLChannel=dataListenerChannel dLNote=dataListenerNote dLVelocity=dataListenerVelocity }}
 
 		{{/if }}
 	</script>
@@ -52,7 +52,7 @@
 		    		<div class="col-md-3">
 		    			<div class="">
 			    			<div class="col-md-12 channel" {{ bind-attr data-channelState=state }}>
-				    			Canal {{ idChannel }} {{ state }} 
+				    			Canal {{ idChannel }} {{ note }} 
 				    			<button class="btn btn btn-danger btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOff' idChannel }} > <span class="glyphicon glyphicon-volume-off">
 				    			</button> 
 				    			<button class="btn btn btn-primary btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOn' idChannel }} > <span class="glyphicon glyphicon-volume-up"> 
@@ -63,8 +63,10 @@
 
 	  			{{/each }}
 			</div>
-			<div>Canal {{ dChannel }} </div>
-			<div>Nota {{ dNote }} </div>
+			<div>Canal {{ dLChannel }} </div>
+			<div>Nota {{ dLNote }} </div>
+			<div>Velocity {{ dLVelocity }} </div>
+			
 		</div>
 	</script>
 
