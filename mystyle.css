@@ -1,7 +1,10 @@
 .channel{
+	font-size:1.3 em;
+	font-weight: bold;
 	border:solid 1px red;
-	padding:5px 15px !important;
+	padding:25px 15px !important;
 	margin-top:5px;
+
 }
 
 .channel>button{
@@ -14,4 +17,28 @@
 
 [data-channelState='active']{
 	background-color: #9EE09A;
+}
+
+[data-channelPlaying='noteOn']{
+	background-color: white !important;
+	color: green;
+}
+
+.dataProgressBar{
+	color: black !important;
+	font-weight: bold;
+}
+
+.Nota{
+	font-size:2em;
+	text-align: center;
+	margin-bottom: 5px;
+}
+
+[data-noteState='active']{
+	color: red;
+	font-weight: bold;
+	transform:scale(1.5);
+	-webkit-transform:scale(1.5);
+	-moz-transform:scale(1.5);
 }
