@@ -1,5 +1,6 @@
 ember-midi-player
 =================
+<<<<<<< HEAD
 ###Aplicación Ember.js:
 
 * Todos los componentes de ember.js están en el fichero:	**app.js**
@@ -229,3 +230,10 @@ La actualización automática de la vista la hacemos desde
     }.observes('dLNote2','dLMessage2')
 
 
+=======
+
+###Cabecera
+
+
+TExto normal???
+>>>>>>> origin/master
