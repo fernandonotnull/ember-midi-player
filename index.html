@@ -3,7 +3,6 @@
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-	<!--<link rel="stylesheet" href="bootstrap.min.css"> -->
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<link rel="stylesheet" href="mystyle.css">
 </head>
@@ -18,13 +17,50 @@
 		</div>
 	</script>
 
+	<script type="text/x-handlebars" data-template-name="app">
+
+		{{ input-file typeCheck='audio/mid' format='DataURL' load="onLoadFile" }}
+		<br>
+		{{#if contenido}}
+			<div class="row well">
+				{{ midi-player checkType=mime url=contenido tick="updateProgress" load="updateSongInfo" nombreCancion=nombre stepVolume=10 }}
+				{{ progress-bar min=0 max=songDuration now=songTime }}
+			</div>
+		{{/if}}
+		<span id="playback-title"></span>
+
+	</script>
 
 	<script type="text/x-handlebars" data-template-name="components/player-controls">
 		<div class="row">
 			<div class="col-md-12">
+				<strong>
+					{{#if isPaused }}
+						PAUSE - 
+					{{else}}
+						{{#if isPlaying}}
+							PLAYING -  
+						{{else}}
+							STOP -
+						{{/if}}
+					{{/if}}
+				</strong>
+
+				{{ nowPlaying }}
+				<br>
+			</div>
+
+			<div class="col-md-12">
+				<br>
 				<button class="btn btn-primary" {{ action 'pressStop' }}><span class="glyphicon glyphicon-stop"></span></button>
 				<button class="btn btn-primary" {{ action 'pressPlay' }}><span class="glyphicon glyphicon-play"></button>
 				<button class="btn btn-primary" {{ action 'pressPause' }}><span class="glyphicon glyphicon-pause"></button>
+				{{#if showVolumeControl }}
+				 | 
+				<button class="btn btn-primary" {{ action 'pressVolumeDown' }}><span class="glyphicon glyphicon-volume-down"></button>
+				<button class="btn btn-primary" {{ action 'pressVolumeUp' }}><span class="glyphicon glyphicon-volume-up"></button>
+				 | <span class="volumen">Volumen: {{ volume }} </span>
+				{{/if}}
 			</div>
 		</div>
 
@@ -32,8 +68,9 @@
 
 	<script type="text/x-handlebars" data-template-name="components/midi-player">
 		{{#if loaded }}
-		
-			{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' }}
+
+			{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' clickVolumeDown='downVolume' clickVolumeUp='upVolume' nowPlaying=nombreCancion showVolumeControl=showVolume volume=midiVolume}}
+
 			<div class="">
 				<br>
 				<button class="btn btn-primary" {{ action 'toggleChannels' }}>
@@ -41,12 +78,12 @@
 				</button>
 				<button class="btn btn-primary" {{ action 'toggleNotes' }}>
 					{{#if showNotes }} Hide {{else}} Show {{/if}} Notes
-				 </button>
+				</button>
 			</div>
 			<br>
 
 			{{#if showChannels}}
-				{{ play-midi-channels dLChannel=dataListenerChannel dLNote=dataListenerNote dLMessage=dataListenerMessage }}
+				{{ play-midi-channels dLChannel=dataListenerChannel dLNote=dataListenerNote dLMessage=dataListenerMessage }}				
 			{{/if}}
 
 			{{#if showNotes}}
@@ -85,71 +122,54 @@
 			<div class="row">
 				{{#each midiChannels }}
 
-					<div class="col-md-3">
-						<div class="">
-							<div class="col-md-12 channel" {{ bind-attr data-channelState=state }} 
-								{{ bind-attr data-channelPlaying=isPlaying }}>
-								Canal {{ idChannel }} {{ note }} 
-								<button class="btn btn btn-danger btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOff' idChannel }} > <span class="glyphicon glyphicon-volume-off">
-								</button> 
-								<button class="btn btn btn-primary btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOn' idChannel }} > <span class="glyphicon glyphicon-volume-up"> 
-								</button>
-							</div>
+				<div class="col-md-3">
+					<div class="">
+						<div class="col-md-12 channel" {{ bind-attr data-channelState=state }} 
+						 {{ bind-attr data-channelPlaying=isPlaying }}>
+
+							Canal {{ idChannel }} {{ note }} 
+							<button class="btn btn btn-danger btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOff' idChannel }} >
+								<span class="glyphicon glyphicon-remove-circle">
+							</button> 
+							<button class="btn btn btn-success btnMuteChannel" {{ bind-attr data-channel=idChannel }} {{ action 'channelOn' idChannel }} > <span class="glyphicon glyphicon-ok-circle"> 
+							</button>
 						</div>
 					</div>
+				</div>
 
-				{{/each }}
-			</div>
+			{{/each }}
 		</div>
-	</script>
-
-	<script type="text/x-handlebars" data-template-name="app">
-
-		{{ input-file typeCheck='*' format='DataURL' load="onLoadFile" }}
-
-		<div>
-			{{#if contenido}}
-			<h3>Archivo cargado </h3>
-			Titulo: {{ nombre }}
-			<br>
-			Tipo: {{ mime }}
-			<br>
-			{{/if}}
-		</div>
-		<div class="row well">
-			{{ midi-player checkType=mime url=contenido tick="updateProgress" load="updateSongInfo" }}
-			{{ progress-bar min=0 max=songDuration now=songTime }}
-		</div>
-		<span id="playback-title"></span>
-
-	</script>
-
-	<script src="bower_components/jquery/dist/jquery.js"></script>
-	<script src="bower_components/handlebars/handlebars.js"></script>
-	<script src="bower_components/ember/ember.js"></script>
-
-
-	<!-- <script src="bower_components/midi/build/MIDI.js"></script> -->
-
-	<!-- midi.js package -->
-	<script src="bower_components/midi/js/MIDI/AudioDetect.js" type="text/javascript"></script>
-	<script src="bower_components/midi/js/MIDI/LoadPlugin.js" type="text/javascript"></script>
-	<script src="bower_components/midi/js/MIDI/Plugin.js" type="text/javascript"></script>
-	<script src="bower_components/midi/js/MIDI/Player.js" type="text/javascript"></script>
-	<script src="bower_components/midi/js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
-
-	<!-- extras -->
-
-	<script src="bower_components/midi/inc/jasmid/stream.js"></script>
-	<script src="bower_components/midi/inc/jasmid/midifile.js"></script>
-	<script src="bower_components/midi/inc/jasmid/replayer.js"></script>
-
-	<script src="bower_components/midi/inc/Base64.js"></script>
-	<script src="bower_components/midi/inc/base64binary.js"></script>
+	</div>
+</script>
 
 
 
-	<script src="app.js"></script>
+<script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/handlebars/handlebars.js"></script>
+<script src="bower_components/ember/ember.js"></script>
+
+
+<!-- <script src="bower_components/midi/build/MIDI.js"></script> -->
+
+<!-- midi.js package -->
+<script src="bower_components/midi/js/MIDI/AudioDetect.js" type="text/javascript"></script>
+<script src="bower_components/midi/js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+<script src="bower_components/midi/js/MIDI/Plugin.js" type="text/javascript"></script>
+<script src="bower_components/midi/js/MIDI/Player.js" type="text/javascript"></script>
+<script src="bower_components/midi/js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+
+<!-- extras -->
+
+<script src="bower_components/midi/inc/jasmid/stream.js"></script> 
+<script src="bower_components/midi/inc/jasmid/midifile.js"></script>
+<script src="bower_components/midi/inc/jasmid/replayer.js"></script>
+
+<script src="bower_components/midi/inc/Base64.js"></script>
+<script src="bower_components/midi/inc/base64binary.js"></script>
+
+
+
+<script src="app.js"></script>
 
 </body>
 </html>

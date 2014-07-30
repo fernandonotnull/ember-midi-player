@@ -6,6 +6,7 @@ App.InputFile = Ember.TextField.extend({
 		var input = event.target;
 		if ( input.files && input.files[0] ) {
 			var archivo=input.files[0];
+			
 			if ( !this.typeCheck || this.typeCheck === '*' || archivo.type === this.typeCheck ){
 				var reader = new FileReader();
 				this.format = this.format || 'Text';
@@ -123,6 +124,12 @@ App.PlayerControlsComponent = Ember.Component.extend({
 				this.set('isPaused',false);
 				this.sendAction('clickStop');
 			}
+		},
+		pressVolumeDown: function () {
+			this.sendAction('clickVolumeDown');
+		},
+		pressVolumeUp: function () {
+			this.sendAction('clickVolumeUp');
 		}
 	}
 })
@@ -130,13 +137,17 @@ App.PlayerControlsComponent = Ember.Component.extend({
 App.MidiPlayerComponent = Ember.Component.extend({
 	url: null,
 	checkType: null,
-	showChannels: true,
-	showNotes: true,
+	showChannels: false,
+	showNotes: false,
+	showVolume: false,
+	midiVolume: 100,
 	init: function () {
 		this._super();
+		this.set('midiVolume',100);
+		this.set('stepVolume',+this.get('stepVolume') || 10 );
+		this.set('showVolume',MIDI.api==='webmidi' || MIDI.api==='webaudio' || MIDI.api==='audiotag');
 		this.animateCallback = (function (that) {
-			return function (event) {		
-				//that.set('dataNotes',event.events);
+			return function (event) {			
 				that.set('currentTime', event.now);
 				that.sendAction('tick', event.now);	
 
@@ -184,7 +195,6 @@ App.MidiPlayerComponent = Ember.Component.extend({
 			this.set('currentTime', 0);
 			this.sendAction('tick',0);
 			
-
 			// reinicia a saco el array midiChannels
 			if ( App.PlayMidiChannelsComponent ){ 
 
@@ -211,6 +221,36 @@ App.MidiPlayerComponent = Ember.Component.extend({
 			MIDI.Player.pause();
 
 		},
+		downVolume: function () {
+			var midiVolume = this.get('midiVolume');
+			midiVolume = (midiVolume-this.get('stepVolume'))>0?midiVolume-this.get('stepVolume'):0;
+			this.set('midiVolume',midiVolume);
+			switch (MIDI.api) {
+				case 'webmidi':
+					for (var i=0;i<16;i++) {
+						MIDI.setVolume(i,midiVolume*127/100);
+					}
+				break;
+				default:
+					MIDI.setVolume(0,midiVolume*127/100);
+			}
+		
+		}.observes('midiVolume'),
+		upVolume: function () {
+			var midiVolume = this.get('midiVolume');
+			midiVolume = (midiVolume+this.get('stepVolume'))<101?midiVolume+this.get('stepVolume'):100;
+			this.set('midiVolume',midiVolume);
+			switch (MIDI.api) {
+				case 'webmidi':
+					for (var i=0;i<16;i++) {
+						MIDI.setVolume(i,midiVolume*127/100);
+					}
+				break;
+				default:
+					MIDI.setVolume(0,midiVolume*127/100);
+			}
+
+		}.observes('midiVolume'),
 		toggleChannels: function () {	
 			this.set('showChannels',!this.get('showChannels'));
 		},
@@ -233,7 +273,7 @@ App.PlayMidiChannelsComponent = Ember.Component.extend({
 				'idChannel': channel,
 				'state': (MIDI.channels[channel].mute)?'mute':'active',
 				'note': null,
-				'isPlaying': false
+				'isPlaying': 'noteOff'
 			})
 			);
 		}
@@ -249,7 +289,7 @@ App.PlayMidiChannelsComponent = Ember.Component.extend({
 		} else {
 			
 			Ember.set(this.midiChannels.content[this.dLChannel],'note','');
-			Ember.set(this.midiChannels.content[this.dLChannel],'isPlaying','off');
+			Ember.set(this.midiChannels.content[this.dLChannel],'isPlaying','noteOff');
 		}
 		
 	}.observes('dLChannel','dLNote','dLMessage'),
