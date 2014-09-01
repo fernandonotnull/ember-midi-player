@@ -3,11 +3,12 @@
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"> 
+	<!--  <link rel="stylesheet" href="bootstrap.min.css"> -->
+	<link rel="stylesheet" href="jquery-ui.css">
 	<link rel="stylesheet" href="mystyle.css">
 </head>
 <body>
-
 	<script type="text/x-handlebars">
 		<h2>Welcome to Ember MIDI player</h2>
 		<div class="container">
@@ -19,13 +20,18 @@
 
 	<script type="text/x-handlebars" data-template-name="app">
 
-		{{ input-file typeCheck='audio/mid' format='DataURL' load="onLoadFile" }}
+		{{ input-file typeCheck='*' error=errorType format='DataURL' load="onLoadFile" }}
 		<br>
-		{{#if contenido}}
-			<div class="row well">
-				{{ midi-player checkType=mime url=contenido tick="updateProgress" load="updateSongInfo" nombreCancion=nombre stepVolume=10 }}
-				{{ progress-bar min=0 max=songDuration now=songTime }}
+		{{#if errorType}}
+			<div class="bg-danger">
+				El tipo del archivo no es correcto.
 			</div>
+		{{else}}
+			{{#if contenido}}
+				<div class="row well">
+					{{ midi-player checkType=mime url=contenido nombreCancion=nombre }}
+				</div>
+			{{/if}}
 		{{/if}}
 		<span id="playback-title"></span>
 
@@ -55,52 +61,64 @@
 				<button class="btn btn-primary" {{ action 'pressStop' }}><span class="glyphicon glyphicon-stop"></span></button>
 				<button class="btn btn-primary" {{ action 'pressPlay' }}><span class="glyphicon glyphicon-play"></button>
 				<button class="btn btn-primary" {{ action 'pressPause' }}><span class="glyphicon glyphicon-pause"></button>
+
 				{{#if showVolumeControl }}
-				 | 
-				<button class="btn btn-primary" {{ action 'pressVolumeDown' }}><span class="glyphicon glyphicon-volume-down"></button>
-				<button class="btn btn-primary" {{ action 'pressVolumeUp' }}><span class="glyphicon glyphicon-volume-up"></button>
-				 | <span class="volumen">Volumen: {{ volume }} </span>
+					 | 
+					 <span class="volumen">Volumen: {{ playerVolume }} </span>
+	  				 | 
+	  				 <div id="slider"></div>
 				{{/if}}
+
 			</div>
 		</div>
 
 	</script>
 
 	<script type="text/x-handlebars" data-template-name="components/midi-player">
-		{{#if loaded }}
-
-			{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' clickVolumeDown='downVolume' clickVolumeUp='upVolume' nowPlaying=nombreCancion showVolumeControl=showVolume volume=midiVolume}}
-
-			<div class="">
-				<br>
-				<button class="btn btn-primary" {{ action 'toggleChannels' }}>
-					{{#if showChannels }} Hide {{else}} Show {{/if}} Channels 
-				</button>
-				<button class="btn btn-primary" {{ action 'toggleNotes' }}>
-					{{#if showNotes }} Hide {{else}} Show {{/if}} Notes
-				</button>
+		{{#if errorMidiType}}
+			<div class="bg-danger">
+				El formato de archivo MIDI no es correcto
 			</div>
-			<br>
+		{{else}}
 
-			{{#if showChannels}}
-				{{ play-midi-channels dLChannel=dataListenerChannel dLNote=dataListenerNote dLMessage=dataListenerMessage }}				
+			{{#if loaded }}	
+
+				{{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' changeVolume='cambioVolumen' nowPlaying=nombreCancion showVolumeControl=showVolume playerVolumeStep=1 isNewSong=esNuevaCancion }}
+				<br>
+				{{ progress-bar min=0 max=songDuration now=currentTime }}
+				<div class="clearfix"></div>
+				<div class="">
+					<br>
+					<button class="btn btn-primary" {{ action 'toggleChannels' }}>
+						{{#if showChannels }} Hide {{else}} Show {{/if}} Channels 
+					</button>
+					<button class="btn btn-primary" {{ action 'toggleNotes' }}>
+						{{#if showNotes }} Hide {{else}} Show {{/if}} Notes
+					</button>
+				</div>
+				<br>
+
+				{{#if showChannels}}
+					{{ play-midi-channels dLChannel=dataListenerChannel dLNote=dataListenerNote dLMessage=dataListenerMessage }}				
+				{{/if}}
+
+				{{#if showNotes}}
+					{{ play-midi-notes dLNote2=dataListenerNote dLMessage2=dataListenerMessage }}
+				{{/if}}
+
+
 			{{/if}}
-
-			{{#if showNotes}}
-				{{ play-midi-notes dLNote2=dataListenerNote dLMessage2=dataListenerMessage }}
-			{{/if}}
-
-
 		{{/if}}
 	</script>
 
 
 	<script type="text/x-handlebars" data-template-name="components/progress-bar">	
-		<div class="progress col-md-6" {{ action "cambiaColor" on="mouseEnter" }}>
+		<div class="progress col-md-6" {{ action "cambiaColor" on="click" }}>
 			<div class="progress-bar" role="progressbar" aria-valuemin="0" {{ bind-attr style=nowPctStyle }} {{ bind-attr aria-valuenow=now }} {{ bind-attr aria-valuemax=max }}>
 				<span class='dataProgressBar'> {{ mmss now }} </span>
 			</div>
 		</div>
+		<span class="marginleft10"> {{ mmss max }} </span>
 	</script>
 
 	<script type="text/x-handlebars" data-template-name="components/play-midi-notes">
@@ -142,20 +160,22 @@
 	</div>
 </script>
 
-
-
 <script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="jquery-ui.js"></script>
 <script src="bower_components/handlebars/handlebars.js"></script>
 <script src="bower_components/ember/ember.js"></script>
 
-
-<!-- <script src="bower_components/midi/build/MIDI.js"></script> -->
+ <!--
+ <script src="bower_components/midi/build/MIDI.js"></script> 
+ -->
 
 <!-- midi.js package -->
+
 <script src="bower_components/midi/js/MIDI/AudioDetect.js" type="text/javascript"></script>
-<script src="bower_components/midi/js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+<script src="bower_components/midi/js/MIDI/LoadPlugin.js" type="text/javascript"></script> 
 <script src="bower_components/midi/js/MIDI/Plugin.js" type="text/javascript"></script>
 <script src="bower_components/midi/js/MIDI/Player.js" type="text/javascript"></script>
+<script src="./DOMLoader.script.js" type="text/javascript"></script>
 <script src="bower_components/midi/js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
 
 <!-- extras -->
@@ -167,9 +187,8 @@
 <script src="bower_components/midi/inc/Base64.js"></script>
 <script src="bower_components/midi/inc/base64binary.js"></script>
 
-
-
 <script src="app.js"></script>
+
 
 </body>
 </html>

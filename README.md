@@ -1,17 +1,36 @@
 ember-midi-player
 =================
-<<<<<<< HEAD
+
 ###Aplicación Ember.js:
 
 * Todos los componentes de ember.js están en el fichero:	**app.js**
+
 * Todas las vistas handlebars están en el fichero:		**index.html**
+* Se incluye el plugin slider de jquery-ui, justo después de cargar jquery, ubicado en root:
+
+    <script src="jquery-ui.js"></script>
+
 * Se utiliza el siguiente css:
   * el CDN de bootstrap:  **"//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"**
+  * el css de jquery-ui: **"jquery-ui.css"**
   * el css propio: **"mystyle.css"**
+
+* Se añade la carpeta images en root, porque la utiliza el css de jquery-ui.
 
 Se instancia al inicio de app.js
 
      App = Ember.Application.create();
+
+
+####Compatibilidad con navegadores.
+
+La clase FileReader no es compatible con los siguientes navegadores, según caniuse.com
+
+* IE 8, IE 9 y Safari 5.1  [Can I Use](http://caniuse.com/#feat=filereader).
+
+En este caso se muestra un mensaje al usuario y no se llega a crear la Ember Application
+
+
 
 - - -
 ####App.InputFile
@@ -40,6 +59,8 @@ Se instancia al inicio de app.js
   * si se omite el valor es 'Text'
   * si el valor es erróneo se asume el valor 'Text'
 
+* _error_: ( Boolean ) Indica si _typeCheck_ es correcto. Se usa en la vista para mostrar o no, un mensaje de errof.
+
 **Eventos**
 
 * load: Se dispara cuando el archivo está cargado `reader.onload` con la siguiente información:
@@ -67,9 +88,9 @@ Controlador principal.
 - - -
 ####App.PlayerControlsComponent
 
-El componente se encarga de mostrar unos botones de _stop_, _play_,  _pause_ y lanzar los respectivos eventos.
+El componente se encarga de mostrar los botones de reproducción y un slider jquery-ui para el control de volumen. Es un valor entre 0 y 100.
 
-    {{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' clickVolumeDown='downVolume' clickVolumeUp='upVolume' nowPlaying=nombreCancion showVolumeControl=showVolume volume=midiVolume}}
+    {{ player-controls clickPlay='play' clickStop='stop' clickPause='pause' changeVolume='cambioVolumen' nowPlaying=nombreCancion showVolumeControl=showVolume playerVolumeStep=1 }}
 
 **Atributos**
 
@@ -77,18 +98,18 @@ El componente se encarga de mostrar unos botones de _stop_, _play_,  _pause_ y l
 * _isPlaying_ ( bool ) Indica si al componente ha enviado la orden de reproducción.
 * _isPaused_ ( bool ) Indica si el componente ha enviado la orden de pausa en la reproducción.
 * _volume_ ( int ) Recibe el volumen de _App.MidiPlayerComponent_.
-* _showVolumeControl_ ( bool ) Indica si se han de mostrar los botones de volumen y el volumen. En nuestro caso recibe el valor de _App.MidiPlayerComponent_.
+* _showVolumeControl_ ( bool ) Indica si se han de mostrar el control de volumen y el volumen. En nuestro caso recibe el valor de _App.MidiPlayerComponent_.
+* _playerVolumeStep_ ( int ) Valor para el paso del control de volumen. 
 
 **Eventos**
 
 * clickPlay: Se lanza cuando se pulsa el botón play y _isPlaying_ es false.
 * clickStop: Se lanza cuando se pulsa el botón stop y _isPlaying_ es true o _isPause_ es true.
 * clickPause: Se lanza cuando se pulsa el botón pause y _isPlaying_ es true.
-* clickVolumeDown: Se lanza cuando se pulsa el botón bajar volumen.
-* clickVolumeUp: Se lanza cuando se pulsa el botón subir volumen.
+* changeVolume: Se lanza cuando se cambia el volumen con el slider.
 
 
-En nuestro caso escuchan estos eventos los **actions** _play_, _stop_, _pause_, _downVolume_ y _upVolume_ respectivamente de _App.MidiPlayerComponent_.
+En nuestro caso escuchan estos eventos los **actions** _play_, _stop_, _pause_ y _cambioVolumen_ respectivamente de _App.MidiPlayerComponent_.
 
 - - -
 ####App.MidiPlayerComponent
@@ -98,7 +119,7 @@ El componente se encarga de gestionar la carga y reproducción de un archivo mid
 La carga del archivo `MIDI.Player.loadFile(url);` es automática cuando cambian los valores de _url_ o _checkType_ en el constructor.
 
 
-   {{ midi-player checkType=mime url=contenido tick="updateProgress" load="updateSongInfo" nombreCancion=nombre stepVolume=10 }}
+   {{ midi-player checkType=mime url=contenido nombreCancion=nombre }}
 
 
 Muestra los botones para mostrar/ocultar las vistas de los canales midi de reproducción y las notas, _App.midiPlayChannelsComponent_ y _App.midiPlayNotesComponent_ respectivamente.
@@ -111,19 +132,13 @@ Muestra los botones para mostrar/ocultar las vistas de los canales midi de repro
 * _nombreCancion_ ( string ) Le asignamos el atributo _nombre_ del controlador principal para pasarlo al componente PlayerControls.
 * _showChannels_ ( bool ) True/False Enseñar los canales midi.
 * _showNotes_ ( bool ) True/False Enseñar las notas.
-* _showVolume_ ( bool ) True/False Enseñar los controles de volumen. 
-* _midiVolume_ ( int ) Volumen
-* _stepVolume_ ( int ) Paso para subir/bajar volumen. El valor por defecto es 10.
+* _showVolume_ ( bool ) True/False Enseñar los controles de volumen.
+* _errorMidiFile_ ( bool ) True/False si el archivo que se carga no es midi.
+* _esNuevaCancion_ ( bool ) True/False si se carga un archivo midi nuevo.
 * _currentTime_ ( int ) Tiempo actual de reproducción. Se obtiene de _MIDI.Player.setAnimation(this.animateCallback)_.
 * _dataListenerChannel_ ( int ) Canal actual en reproducción. Se obtiene de _MIDI.Player.addListener(this.listenerCallback)_.
 * _dataListenerNote_ ( int ) Nota actual en reproducción. Se obtiene de _MIDI.Player.addListener(this.listenerCallback)_.
 * _dataListenerMessage_ ( int ) Devuelve 144 si empieza la nota o 128 si acaba la nota. Se obtiene de _MIDI.Player.addListener(this.listenerCallback)_.
-
-**Eventos**
-
-* _tick_ Se lanza cada vez que cambia el tiempo de reproducción recogido de _MIDI.Player.setAnimation(this.animateCallback)_ enviando el tiempo actual de reproducción.
-
-En nuestro caso lo escucha el **action** _updateProgress_ de  _App.PlayerController_ para enviar el tiempo transcurrido a App.ProgressBarComponent
 
 
 ####ACLARACION SOBRE EL VOLUMEN EN MIDI.js
@@ -132,12 +147,13 @@ MIDI.js autodetecta la mejor api del navegador para reproducir archivos midi y c
 
 **MIDI.setVolume(canal,volumen)**
 
-* En el api _flash_  no tiene ningún efecto. 
+* En el api _flash_  no tiene ningún efecto ( No se mostrará el control de volumen )
 * En el api _webaudio_ y _audiotag_ tiene efecto sobre el volumen general, pero no sobre el volumen de los canales. 
 * En el api _webmidi_ se cambia el volumen de un canal en concreto. 
 
-MIDI.js da valores al volumen de 0 a 127. 
-En este componente no implementamos la posibilidad de cambiar el volumen de un canal individual y se cambiaría el de todos los canales en el caso de que la api fuese _webmidi_ .
+MIDI.js da valores al volumen de 0 a 127 en api _webaudio_ y _webmidi_ y de 0.0 a 1.0 en api _audiotag_.
+
+En este componente no implementamos la posibilidad de cambiar el volumen de un canal individual y se cambiaría el de todos los canales en cualquier caso.
 
 
 - - -
@@ -228,12 +244,3 @@ La actualización automática de la vista la hacemos desde
 	   ...
 		
     }.observes('dLNote2','dLMessage2')
-
-
-=======
-
-###Cabecera
-
-
-TExto normal???
->>>>>>> origin/master
